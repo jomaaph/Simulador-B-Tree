@@ -1,178 +1,95 @@
-# Simulador de Árvore B+ — documentação
+# Simulador de Árvore B+
 
-**Criado por José Ferreira**  
-Projecto educativo e de código aberto · 2026
+Projecto educativo e de código aberto desenvolvido para o estudo interactivo de estruturas de dados avançadas.
 
-## 1. Sobre o projecto
+---
 
-O Simulador de Árvore B+ é uma aplicação didáctica executada no navegador. O objectivo é ajudar estudantes a compreender a organização de uma árvore B+, a distribuição de chaves, os nós internos, as folhas e as operações fundamentais de pesquisa, inserção e remoção.
+## 1. Sobre o Projecto
 
-O projecto não necessita de servidor, base de dados ou instalação de dependências externas: basta abrir o ficheiro `Simulador_BMais.html` num navegador moderno.
+O **Simulador de Árvore B+** é uma aplicação didáctica executada inteiramente no navegador, concebida para ajudar estudantes e entusiastas de ciência de computadores a compreender de forma visual a organização de uma árvore B+. A ferramenta demonstra de maneira clara a distribuição de chaves, o comportamento dos nós internos e folhas, bem como as operações fundamentais de pesquisa, inserção e remoção.
 
-## 2. Objectivos pedagógicos
+**Vantagens principais:** Totalmente autónomo, sem necessidade de servidores, bases de dados ou instalação de dependências externas — basta abrir o ficheiro HTML num navegador moderno.
 
-- Visualizar a diferença entre nós internos e folhas.
-- Compreender a função das chaves separadoras.
-- Observar a divisão de nós (*split*) durante inserções.
-- Estudar redistribuição, fusão (*merge*) e redução da raiz durante remoções.
-- Acompanhar a ligação sequencial entre folhas.
-- Experimentar diferentes ordens e analisar o efeito na altura e na quantidade de nós.
-- Recuar e avançar entre estados para comparar resultados sem reiniciar o exercício.
+---
 
-## 3. Tecnologias
+## 2. Objectivos Pedagógicos
 
-| Tecnologia | Utilização |
-|---|---|
-| HTML5 | Estrutura da interface |
-| CSS3 | Apresentação, layout responsivo e efeitos visuais |
-| JavaScript | Estrutura de dados, operações e histórico |
-| SVG | Desenho dos nós e ligações da árvore |
+* **Visualização Estrutural:** Distinguir visualmente nós internos (separadores) e nós folha (dados).
+* **Operações Dinâmicas:** Acompanhar a divisão de nós (*split*) durante inserções e as fases de redistribuição ou fusão (*merge*) durante remoções.
+* **Navegação Sequencial:** Observar a ligação directa entre folhas ordenadas.
+* **Flexibilidade de Parâmetros:** Experimentar diferentes ordens de árvore e analisar o impacto directo na altura e quantidade de nós.
+* **Controlo de Histórico:** Recuar e avançar entre estados para comparar resultados passo a passo sem perder o fio ao exercício.
 
-A aplicação é autónoma e não usa bibliotecas externas.
+---
 
-## 4. Conceitos fundamentais
+## 3. Tecnologias Utilizadas
 
-### 4.1 Ordem da árvore
+| Tecnologia | Propósito |
+| :--- | :--- |
+| **HTML5** | Estruturação da interface de utilizador |
+| **CSS3** | Estilização, layout responsivo e efeitos visuais limpos |
+| **JavaScript** | Lógica da estrutura de dados, gestão de operações e histórico de estados |
+| **SVG** | Renderização dinâmica e vectorizada dos nós e ligações da árvore |
 
-Neste simulador, a ordem `m` representa o número máximo de filhos de um nó interno.
+---
 
-- Máximo de filhos por nó interno: `m`.
-- Máximo de chaves por nó: `m − 1`.
-- Mínimo de filhos de um nó interno que não seja raiz: `ceil(m / 2)`.
-- Mínimo de chaves numa folha não-raiz: `ceil((m − 1) / 2)`.
+## 4. Conceitos Fundamentais
 
-A raiz tem regras especiais: pode ter menos filhos do que os nós internos comuns e, quando fica com apenas um filho, esse filho passa a ser a nova raiz.
+### 4.1. Ordem da Árvore ($m$)
+A ordem $m$ define os limites estruturais da árvore:
+* **Máximo de filhos por nó interno:** $m$.
+* **Máximo de chaves por nó:** $m - 1$.
+* **Mínimo de filhos de um nó interno** (excepto raiz): $\lceil m / 2 \rceil$.
+* **Mínimo de chaves numa folha não-raiz:** $\lceil (m - 1) / 2 \rceil$.
 
-**Nota:** diferentes livros e implementações podem adoptar convenções distintas para a palavra “ordem”. Neste projecto, deve ser usada a definição apresentada acima.
+*Nota sobre a Raiz:* Possui regras especiais, podendo ter menos filhos do que os nós comuns. Caso fique com apenas um filho, esse filho é promovido a nova raiz.
 
-### 4.2 Nós internos e folhas
+### 4.2. Nós Internos vs. Folhas
+* **Nós Internos:** Armazenam chaves separadoras e referências para os nós filhos, servindo unicamente de guia para o encaminhamento das pesquisas.
+* **Folhas:** Contêm todas as chaves e registos finais, encontrando-se rigorosamente ao mesmo nível e interligadas sequencialmente para percurso eficiente.
 
-- Os nós internos guardam chaves separadoras e referências para os filhos. Não guardam os registos finais.
-- As folhas guardam todas as chaves/registos.
-- Todas as folhas devem ficar ao mesmo nível.
-- As folhas são ligadas sequencialmente, permitindo percorrer os valores ordenados.
+---
 
-As chaves separadoras representam o primeiro valor da subárvore/filho à sua direita, de acordo com a convenção usada no código.
+## 5. Tipos de Valores e Ordenação
 
-## 5. Tipos de valores e ordenação
+O simulador aceita tanto números como palavras, aplicando a seguinte política de ordenação:
+1. **Valores numéricos** prioritários, dispostos em ordem numérica estrita.
+2. **Valores de texto** subsequentes, ordenados alfabeticamente segundo as regras de comparação do *locale* português.
+3. **Valores repetidos** são permitidos sem restrições.
 
-O campo de entrada aceita números e palavras. A ordenação aplicada é:
+---
 
-1. Valores numéricos primeiro, em ordem numérica.
-2. Valores de texto depois, em ordem alfabética, respeitando as regras de comparação do locale português.
-3. Valores repetidos são permitidos.
+## 6. Guia de Funcionalidades
 
-Exemplo de sequência ordenada: `2, 10, Angola, Brasil, Luanda`.
+* **Inserir:** Adiciona uma chave respeitando a ordenação. Se a capacidade do nó for excedida, ocorre o *split* propagável até à raiz.
+* **Pesquisar:** Percorre os separadores desde a raiz até à folha correspondente, destacando visualmente o caminho percorrido.
+* **Remover:** Elimina uma ocorrência da chave, desencadeando redistribuição com irmãos ou fusão de nós caso a ocupação mínima seja quebrada.
+* **Histórico (Recuar / Avançar):** Permite navegar iterativamente pelos estados anteriores e posteriores da árvore.
+* **Alteração de Ordem:** Disponibiliza selecção dinâmica entre as ordens 3, 4, 5 e 6, reconstruindo automaticamente a árvore com base nos dados existentes.
 
-A comparação numérica é feita quando o conteúdo corresponde a um número válido. Assim, `10` é comparado numericamente com `2`, e não como texto.
+---
 
-## 6. Funcionalidades
+## 7. Roteiro de Exercícios Práticos
 
-### Inserir
-1. Introduza uma chave no campo.
-2. Seleccione **Inserir** ou pressione Enter.
-3. A aplicação localiza a folha apropriada.
-4. A chave é inserida na posição ordenada.
-5. Se um nó exceder a capacidade, ocorre divisão (*split*), podendo a divisão propagar-se até à raiz.
+* **Exercício A (Inserção e Divisão):** Configure a ordem para 4 e insira sequencialmente os valores de 1 a 10. Observe a formação de divisões e a criação de novas raízes.
+* **Exercício B (Pesquisa):** Teste a busca por uma chave existente (ex: `7`) e uma inexistente (ex: `15`) para comparar os percursos visuais.
+* **Exercício C (Remoção):** Remova o valor `9` e analise o comportamento de redistribuição ou fusão de nós folhas.
+* **Exercício D (Multilinguagem/Tipos):** Insira palavras como `Angola`, `Brasil`, `Canadá` juntamente com números e verifique a ordenação híbrida.
 
-### Pesquisar
-1. Introduza a chave.
-2. Seleccione **Pesquisar**.
-3. O simulador percorre os separadores desde a raiz até uma folha.
-4. A interface destaca o percurso e informa se a chave existe.
+---
 
-### Remover
-1. Introduza a chave.
-2. Seleccione **Remover uma ocorrência**.
-3. Se a chave existir, é removida uma ocorrência.
-4. Se um nó ficar abaixo da ocupação mínima, o algoritmo tenta redistribuir com um irmão; caso não seja possível, funde os nós.
-5. Se a raiz ficar com um único filho, a altura da árvore é reduzida.
+## 8. Como Executar
 
-### Recuar e avançar
-- **Recuar** restaura o estado anterior da árvore.
-- **Avançar** restaura o estado seguinte, caso exista.
-- Se for executada uma nova operação depois de recuar, os estados futuros são descartados e começa um novo ramo de histórico.
+1. Descarregue o ficheiro principal do repositório.
+2. Guarde-o numa pasta local no seu computador.
+3. Abra-o directamente em qualquer navegador moderno (Google Chrome, Firefox, Microsoft Edge) — não requer servidores nem ligações à Internet.
 
-### Alterar a ordem
-A lista de configuração permite escolher as ordens 3, 4, 5 ou 6. Ao alterar a ordem, os valores existentes são reinseridos para construir uma árvore compatível com a nova configuração.
+---
 
-### Exemplos rápidos
-- **Carregar 1 a 10** cria uma árvore de demonstração com as chaves de 1 a 10.
-- **Limpar árvore** remove todos os nós e inicia um novo exercício.
+## 9. Licença
 
-## 7. Interface e indicadores
+Este projecto é disponibilizado sob a licença **MIT**, permitindo o uso, modificação e distribuição livre para fins educativos e comerciais.
 
-| Elemento | Significado |
-|---|---|
-| Registos nas folhas | Total de chaves armazenadas nas folhas |
-| Altura | Número de níveis da árvore |
-| Número de folhas | Quantidade de nós folha |
-| Máx. chaves / folha | Capacidade máxima de uma folha (`ordem − 1`) |
-| Histórico | Estados e operações que podem ser revisitados |
-| Cadeia de folhas | Sequência ordenada das folhas ligadas |
+---
 
-## 8. Como executar
-
-1. Descarregue `Simulador_BMais.html`.
-2. Guarde o ficheiro numa pasta local.
-3. Abra-o com Google Chrome, Firefox, Edge ou outro navegador moderno.
-4. Não é necessária ligação à Internet depois de obter o ficheiro.
-
-Para desenvolver, abra o HTML num editor de código. O CSS e o JavaScript estão incorporados no próprio ficheiro.
-
-## 9. Roteiro de exercícios
-
-### Exercício A — Inserção e divisão
-Escolha ordem 4 e insira, um de cada vez: `1, 2, 3, 4, 5, 6, 7, 8, 9, 10`.
-
-Observe:
-- Em que inserção ocorre a primeira divisão?
-- Quando é criada uma nova raiz?
-- Como mudam os separadores?
-- Quantas folhas existem no final?
-
-### Exercício B — Pesquisa
-Pesquise `7` e depois `15`. Compare o percurso e as mensagens.
-
-### Exercício C — Remoção
-Remova `9`. Observe a folha afectada e verifique se ocorre redistribuição ou fusão. Experimente também remover valores de folhas diferentes.
-
-### Exercício D — Histórico
-Insira `2` e `3`. Use **Recuar** para voltar ao estado com apenas `2`; depois use **Avançar** para recuperar o estado com `2` e `3`.
-
-### Exercício E — Palavras e valores repetidos
-Insira `Angola`, `Brasil`, `Canadá`, `Angola` e `10`. Pesquise e remova uma ocorrência de `Angola`. Observe a ordenação e a contagem.
-
-### Exercício F — Comparação de ordens
-Repita uma sequência de inserções com ordem 3 e ordem 5. Compare altura, folhas e distribuição.
-
-## 10. Estrutura técnica do código
-
-O ficheiro único contém quatro áreas principais:
-
-- **Modelo de dados:** nós, chaves, filhos e ligação `next` entre folhas.
-- **Operações:** comparação, pesquisa de folha, inserção recursiva, divisão, remoção e reequilíbrio.
-- **Histórico:** serialização dos estados e restauração por índice.
-- **Apresentação:** cálculo de posições, desenho SVG, indicadores e controlos da interface.
-
-## 11. Limitações e âmbito
-
-Este é um mini-projecto educativo, não um motor de armazenamento nem um SGBD. A árvore existe em memória durante a sessão do navegador; fechar ou actualizar a página reinicia o estado.
-
-O simulador serve para estudo visual e experimentação. Para uso académico formal, recomenda-se comparar os resultados com exercícios resolvidos e validar sequências complexas de remoção, especialmente quando existem chaves repetidas ou várias fusões sucessivas.
-
-A aplicação não representa páginas de disco, buffer pool, endereços físicos, persistência, concorrência ou optimizações de um SGBD real.
-
-## 12. Código aberto e licença
-
-Este projecto é disponibilizado com finalidade educativa e intenção de código aberto. A proposta de licença incluída é a **MIT License**, uma licença permissiva que permite usar, copiar, modificar, distribuir e incorporar o código, inclusive em projectos comerciais, desde que o aviso de copyright e a licença sejam mantidos.
-
-A licença MIT é uma escolha proposta para este mini-projecto. Para que a distribuição fique clara, mantenha o ficheiro `LICENSE` junto do código-fonte e inclua os créditos.
-
-## 13. Créditos
-
-**Criado por José Ferreira**  
-Simulador de Árvore B+ — mini-projecto educativo e de código aberto.  
-© 2026 José Ferreira.
-
-Contribuições, correcções e melhorias são bem-vindas, desde que respeitem a licença distribuída com o projecto.
+*Criado por José Ferreira · 2026*
