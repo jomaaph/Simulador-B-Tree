@@ -47,9 +47,15 @@ button:disabled{opacity:.38;cursor:not-allowed}
 @media(max-width:620px){.app{padding:18px 12px 32px}header{display:block}.tag{display:inline-block;margin-top:12px}.sidebar{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.visual{padding:13px}.visual-head{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MDVL2TL6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
 </head>
 <body><div class="app">
-<header><div><p class="eyebrow">laboratório interactivo de base de dados</p><h1>Simulador B+Tree</h1><p class="subtitle">Executa operações reais de inserção, pesquisa e remoção. Avança e recua no histórico sem reiniciar a árvore.</p></div><span class="tag">Estude que a vida muda</span></header>
+<header><div><p class="eyebrow">laboratório interactivo de base de dados</p><h1>Simulador B+Tree</h1><p class="subtitle">Executa operações de inserção, pesquisa e remoção. Avança e recua no histórico sem reiniciar a árvore.</p></div><span class="tag">Estude que a vida muda</span></header>
 <div class="layout">
 <aside class="panel sidebar">
 <section><h2>Configuração</h2><div class="field"><label for="order">Ordem (máximo de filhos)</label><select id="order"><option value="3">3 — até 2 chaves</option><option value="4" selected>4 — até 3 chaves</option><option value="5">5 — até 4 chaves</option><option value="6">6 — até 5 chaves</option></select></div><p class="hint" id="rules">Ordem 4: máximo 4 filhos e 3 chaves por nó; folhas com 1 a 3 registos.</p></section>
