@@ -197,7 +197,9 @@ function render(){
  let host=$("tree"),chain=$("chain");host.innerHTML="";
  if(!root){host.innerHTML='<div class="empty"><b>Árvore vazia</b>Os nós aparecerão aqui após a primeira inserção.</div>';chain.hidden=true;return}
  let {positions,width,height}=layoutTree(),s=svg("svg",{class:"tree-svg",width:"100%",height,viewBox:`0 0 ${width} ${height}`,preserveAspectRatio:"xMidYMid meet",role:"img","aria-label":"Árvore B+"});
+ let defs=svg("defs"),marker=svg("marker",{id:"leaf-arrow",markerWidth:8,markerHeight:8,refX:7,refY:4,orient:"auto",markerUnits:"strokeWidth"});marker.appendChild(svg("path",{d:"M0,0 L8,4 L0,8 Z",fill:"#087f73"}));defs.appendChild(marker);s.appendChild(defs);
  function edges(n){if(n.leaf)return;let p=positions.get(n);n.children.forEach(c=>{let q=positions.get(c);s.appendChild(svg("line",{x1:p.x,y1:p.y+24,x2:q.x,y2:q.y-24,stroke:"#aab5c5","stroke-width":2}));edges(c)})}
+ for(let leaf=leafHead;leaf&&leaf.next;leaf=leaf.next){let p=positions.get(leaf),q=positions.get(leaf.next);s.appendChild(svg("line",{x1:p.x+p.w/2+3,y1:p.y,x2:q.x-q.w/2-5,y2:q.y,stroke:"#087f73","stroke-width":2,"marker-end":"url(#leaf-arrow)"}))}
  function draw(n){
    let p=positions.get(n),widths=cellWidths(n),w=nodeWidth(n),h=52,x=p.x-w/2,y=p.y-26,g=svg("g",{class:"node","data-keys":n.keys.join("|")});
    g.appendChild(svg("rect",{x,y,width:w,height:h,rx:10,fill:n.leaf?"#eaf8f5":"#f2f4f7",stroke:n.leaf?"#0d9488":"#64748b","stroke-width":2}));
