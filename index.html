@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratório B+ Tree</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#182230;background:#f4f6fa;--line:#e1e7ef;--muted:#667085;--blue:#3157d5;--teal:#087f73;--red:#b42318}
+*{box-sizing:border-box}body{margin:0}.app{max-width:1300px;margin:auto;padding:28px 22px 48px}
+header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);font-weight:800;margin:0 0 7px}
+h1{font-size:clamp(1.6rem,3vw,2.2rem);margin:0 0 7px;letter-spacing:-.035em}
+.subtitle{margin:0;color:var(--muted);line-height:1.5;max-width:760px}
+.tag{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:#fff;font-size:.76rem;font-weight:750;white-space:nowrap}
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #1018280a}
+.sidebar{padding:18px;display:grid;gap:16px}.main{display:grid;gap:16px;min-width:0}
+h2{font-size:.98rem;margin:0 0 12px}.field{display:grid;gap:7px;margin-bottom:11px}
+label{font-size:.8rem;font-weight:750;color:#344054}
+input,select{width:100%;padding:11px 12px;border:1px solid #cfd7e3;border-radius:10px;background:#fff;font:inherit;color:#182230}
+input:focus,select:focus{outline:3px solid #3157d51c;border-color:var(--blue)}
+button{font:inherit;font-weight:750;border:1px solid #d0d7e2;border-radius:10px;background:#fff;color:#344054;padding:10px 12px;cursor:pointer;transition:.15s}
+button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(.98)}
+button:disabled{opacity:.38;cursor:not-allowed}
+.primary{background:var(--blue);border-color:var(--blue);color:#fff}.danger{background:#fff1f0;color:var(--red);border-color:#f3c6c2}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/-1}
+.rule{height:1px;background:var(--line)}.hint{font-size:.77rem;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.history-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.status{font-size:.84rem;line-height:1.45;padding:11px 12px;border-radius:10px;background:#eef2ff;color:#293f9b;min-height:44px}
+.status.error{background:#fff1f0;color:#912018}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.metric{padding:13px 14px}.metric small{display:block;color:var(--muted);font-size:.74rem;margin-bottom:5px}.metric strong{font-size:1.35rem}
+.visual{padding:20px;min-width:0;min-height:690px}.visual-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.visual-head h2{margin:0}.legend{font-size:.75rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}.dot.internal{background:#64748b}.dot.leaf{background:#0d9488}
+.tree-scroll{overflow:auto;padding:26px 10px 24px;min-height:540px;display:flex;align-items:center;justify-content:center}.tree-svg{display:block;margin:auto;overflow:visible;min-width:100%;min-height:500px}
+.empty{text-align:center;padding:60px 12px;color:var(--muted)}.empty b{display:block;color:#344054;margin-bottom:5px}
+.leaf-chain{border-top:1px solid var(--line);padding:14px 2px 0;display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
+.leaf-chip{background:#eaf8f5;border:1px solid #b8e4db;color:#07685f;border-radius:8px;padding:7px 10px;font-size:.8rem;font-weight:750}
+.arrow{color:#98a2b3}.log{padding:16px 18px}.log-head{display:flex;justify-content:space-between;align-items:center}
+.log-head h2{margin:0}.log-list{display:grid;gap:7px;max-height:210px;overflow:auto;margin-top:12px}
+.log-item{font-size:.81rem;color:#475467;padding:9px 10px;background:#f8fafc;border-radius:8px;line-height:1.4}
+.log-item.active{border-left:3px solid var(--blue);background:#eef2ff}
+.node rect{transition:fill .18s,stroke .18s}.node.pulse rect{animation:pop .35s ease}.node.visited rect{fill:#dbeafe;stroke:#3157d5;stroke-width:3}.node.found rect{fill:#dcfce7;stroke:#16a34a;stroke-width:3}.node.missing rect{fill:#fee2e2;stroke:#dc2626;stroke-width:3}
+@keyframes pop{50%{transform:scale(1.08)}}
+@media(max-width:930px){.layout{grid-template-columns:1fr}.sidebar{grid-template-columns:1fr 1fr}.sidebar .status,.sidebar .rule{grid-column:1/-1}}
+@media(max-width:620px){.app{padding:18px 12px 32px}header{display:block}.tag{display:inline-block;margin-top:12px}.sidebar{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.visual{padding:13px}.visual-head{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body><div class="app">
+<header><div><p class="eyebrow">laboratório interactivo de base de dados</p><h1>Simulador B+Tree</h1><p class="subtitle">Executa operações reais de inserção, pesquisa e remoção. Avança e recua no histórico sem reiniciar a árvore.</p></div><span class="tag">Estude que a vida muda</span></header>
+<div class="layout">
+<aside class="panel sidebar">
+<section><h2>Configuração</h2><div class="field"><label for="order">Ordem (máximo de filhos)</label><select id="order"><option value="3">3 — até 2 chaves</option><option value="4" selected>4 — até 3 chaves</option><option value="5">5 — até 4 chaves</option><option value="6">6 — até 5 chaves</option></select></div><p class="hint" id="rules">Ordem 4: máximo 4 filhos e 3 chaves por nó; folhas com 1 a 3 registos.</p></section>
+<div class="rule"></div>
+<section><h2>Operações</h2><div class="field"><label for="value">Chave (número ou palavra)</label><input id="value" type="text" inputmode="text" autocomplete="off" placeholder="Ex.: 9 ou Angola"></div><div class="actions"><button class="primary" id="insert">Inserir</button><button id="search">Pesquisar</button><button class="danger wide" id="remove">Remover uma ocorrência</button></div><p class="hint">O simulador aceita valores repetidos. A remoção elimina uma ocorrência de cada vez.</p></section>
+<div class="rule"></div>
+<section><h2>Histórico · passo a passo</h2><div class="history-controls"><button id="back" disabled>← Recuar</button><button id="forward" disabled>Avançar →</button></div><p class="hint" id="stepLabel">Estado 0 de 0</p><p class="hint">Exemplo: insere 2 e depois 3. Se quiseres voltar ao estado anterior, clica em Recuar. Avançar recupera o estado seguinte.</p></section>
+<div class="rule"></div>
+<section><h2>Exemplos rápidos</h2><div class="actions"><button id="example">Carregar 1 a 10</button><button id="reset">Limpar árvore</button></div></section>
+<div class="status wide" id="status" role="status" aria-live="polite">Árvore vazia. Insere um valor ou carrega o exemplo.</div>
+</aside>
+<main class="main">
+<section class="metrics"><div class="panel metric"><small>Registos nas folhas</small><strong id="count">0</strong></div><div class="panel metric"><small>Altura</small><strong id="height">0</strong></div><div class="panel metric"><small>Número de folhas</small><strong id="leafCount">0</strong></div><div class="panel metric"><small>Máx. chaves / folha</small><strong id="capacity">3</strong></div></section>
+<section class="panel visual"><div class="visual-head"><h2>Visualização da árvore</h2><div class="legend"><span><i class="dot internal"></i>Nó interno / separador</span><span><i class="dot leaf"></i>Folha / registos</span></div></div><div class="tree-scroll" id="tree"><div class="empty"><b>Árvore vazia</b>Os nós aparecerão aqui após a primeira inserção.</div></div><div class="leaf-chain" id="chain" hidden></div></section>
+<section class="panel log"><div class="log-head"><h2>Operações realizadas</h2><button id="clearLog">Limpar registo</button></div><div class="log-list" id="log"><div class="log-item">Nenhuma operação executada.</div></div></section>
+<p class="hint"><b>Regras:</b> os nós internos guardam separadores (não registos); todos os registos ficam nas folhas. As folhas estão ligadas da esquerda para a direita. A inserção e a remoção aplicam split, redistribuição, fusão e redução da raiz.</p>
+</main></div></div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let order=4,root=null,leafHead=null,history=[],cursor=0,logs=[];
+const clone=n=>n?{leaf:n.leaf,keys:[...n.keys],children:n.children.map(clone),next:null}:null;
+const node=(leaf,keys=[],children=[])=>({leaf,keys,children,next:null});
+const maxKeys=()=>order-1,minLeaf=()=>Math.ceil((order-1)/2),minChildren=()=>Math.ceil(order/2);
+const first=n=>n.leaf?n.keys[0]:first(n.children[0]);
+// Ordenação total: números primeiro (numericamente), depois texto (alfabeticamente).
+function isNumericKey(v){return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(String(v).trim())&&Number.isFinite(Number(v))}
+function compare(a,b){
+ const an=isNumericKey(a),bn=isNumericKey(b);
+ if(an&&bn){const diff=Number(a)-Number(b);return diff||String(a).localeCompare(String(b),'pt',{sensitivity:'base',numeric:true})}
+ if(an!==bn)return an?-1:1;
+ return String(a).localeCompare(String(b),'pt',{sensitivity:'base',numeric:true});
+}
+function same(a,b){return compare(a,b)===0}
+function refreshSeparators(n){if(!n.leaf)n.keys=n.children.slice(1).map(first)}
+function findLeaf(v){let n=root;while(n&&!n.leaf){let i=0;while(i<n.keys.length&&compare(v,n.keys[i])>=0)i++;n=n.children[i]}return n}
+function rebuildLeafLinks(){let arr=[];function walk(n){if(!n)return;if(n.leaf)arr.push(n);else n.children.forEach(walk)}walk(root);arr.forEach((l,i)=>l.next=arr[i+1]||null);leafHead=arr[0]||null}
+function insertRec(n,v){
+ if(n.leaf){let i=0;while(i<n.keys.length&&compare(n.keys[i],v)<=0)i++;n.keys.splice(i,0,v);if(n.keys.length<=maxKeys())return null;let right=node(true,n.keys.splice(Math.ceil(n.keys.length/2)));return right}
+ let i=0;while(i<n.keys.length&&compare(v,n.keys[i])>=0)i++;
+ let split=insertRec(n.children[i],v);if(split)n.children.splice(i+1,0,split);refreshSeparators(n);
+ if(n.children.length<=order)return null;
+ let rightChildren=n.children.splice(Math.ceil(n.children.length/2));let right=node(false,[],rightChildren);refreshSeparators(n);refreshSeparators(right);return right;
+}
+function insert(v){if(!root){root=node(true,[v]);rebuildLeafLinks();return}let split=insertRec(root,v);if(split){let r=node(false,[],[root,split]);refreshSeparators(r);root=r}rebuildLeafLinks()}
+function underfull(n){return n.leaf?n.keys.length<minLeaf():n.children.length<minChildren()}
+function canLend(n){return n.leaf?n.keys.length>minLeaf():n.children.length>minChildren()}
+function rebalance(parent,idx){
+ const child=parent.children[idx],left=parent.children[idx-1],right=parent.children[idx+1];
+ if(left&&canLend(left)){
+   if(child.leaf)child.keys.unshift(left.keys.pop());
+   else child.children.unshift(left.children.pop());
+   if(!left.leaf)refreshSeparators(left);
+   if(!child.leaf)refreshSeparators(child);
+   return "redistribuição à esquerda";
+ }
+ if(right&&canLend(right)){
+   if(child.leaf)child.keys.push(right.keys.shift());
+   else child.children.push(right.children.shift());
+   if(!right.leaf)refreshSeparators(right);
+   if(!child.leaf)refreshSeparators(child);
+   return "redistribuição à direita";
+ }
+ if(left){
+   if(child.leaf)left.keys.push(...child.keys);
+   else left.children.push(...child.children);
+   parent.children.splice(idx,1);
+   if(!left.leaf)refreshSeparators(left);
+   return "fusão com o irmão esquerdo";
+ }
+ if(right){
+   if(child.leaf)child.keys.push(...right.keys);
+   else child.children.push(...right.children);
+   parent.children.splice(idx+1,1);
+   if(!child.leaf)refreshSeparators(child);
+   return "fusão com o irmão direito";
+ }
+ return "";
+}
+function removeRec(n,v){
+ if(n.leaf){let i=n.keys.findIndex(k=>same(k,v));if(i<0)return false;n.keys.splice(i,1);return true}
+ // Percorre os intervalos candidatos. Isto também permite remover duplicados
+ // que tenham ficado em folhas adjacentes após uma divisão.
+ for(let i=0;i<n.children.length;i++){
+   const child=n.children[i];
+   const lower=first(child);
+   const upper=i<n.children.length-1?first(n.children[i+1]):null;
+   if(compare(v,lower)<0||(upper!==null&&compare(v,upper)>0))continue;
+   if(removeRec(child,v)){
+     if(underfull(child))rebalance(n,i);
+     refreshSeparators(n);
+     return true;
+   }
+ }
+ // Valores iguais a um separador podem existir em mais de uma folha.
+ for(let i=0;i<n.children.length;i++){
+   if(removeRec(n.children[i],v)){
+     if(underfull(n.children[i]))rebalance(n,i);
+     refreshSeparators(n);
+     return true;
+   }
+ }
+ return false;
+}
+function remove(v){
+ if(!root)return false;
+ let ok=removeRec(root,v);
+ if(!ok)return false;
+ if(!root.leaf&&root.children.length===1)root=root.children[0];
+ if(root&&root.leaf&&root.keys.length===0)root=null;
+ rebuildLeafLinks();
+ return true;
+}
+function collectLeaves(){let a=[];function w(n){if(!n)return;if(n.leaf)a.push(n);else n.children.forEach(w)}w(root);return a}
+function depth(n){return !n?0:n.leaf?1:1+depth(n.children[0])}
+function state(){return JSON.stringify({root:serialize(root),order})}
+function serialize(n){return n?{leaf:n.leaf,keys:n.keys,children:n.children.map(serialize)}:null}
+function deserialize(o){return o?node(o.leaf,o.keys,o.children.map(deserialize)):null}
+function save(label){history=history.slice(0,cursor+1);history.push({data:state(),label});cursor=history.length-1;logs=history.slice(1).map(x=>x.label);renderLog();updateHistory()}
+function restore(i){cursor=i;let s=JSON.parse(history[cursor].data);order=s.order;$("order").value=order;root=deserialize(s.root);rebuildLeafLinks();render();$("status").textContent=history[cursor].label;updateHistory();renderLog()}
+function updateHistory(){$("back").disabled=cursor<=0;$("forward").disabled=cursor>=history.length-1;$("stepLabel").textContent=`Estado ${cursor} de ${history.length-1}`}
+function renderLog(){let box=$("log");box.innerHTML="";if(!logs.length){box.innerHTML='<div class="log-item">Nenhuma operação executada.</div>';return}logs.slice().reverse().forEach((s,i)=>{let d=document.createElement("div");d.className="log-item"+(logs.length-1-i===cursor-1?" active":"");d.textContent=s;box.appendChild(d)})}
+function cellWidths(n){return n.keys.map(k=>Math.max(48,Math.min(190,String(k).length*9+22)))}
+function nodeWidth(n){return cellWidths(n).reduce((a,b)=>a+b,0)+16}
+function layoutTree(){
+ let positions=new Map(),x=0;
+ function place(n,d){
+   if(n.leaf){let w=nodeWidth(n),cx=x+w/2;positions.set(n,{x:cx,y:58+d*158,w});x+=w+54;return cx}
+   let xs=n.children.map(c=>place(c,d+1)),cx=(xs[0]+xs[xs.length-1])/2;
+   positions.set(n,{x:cx,y:58+d*158,w:nodeWidth(n)});return cx;
+ }
+ place(root,0);let contentWidth=Math.max(1,x-54),width=Math.max(1040,contentWidth),offset=(width-contentWidth)/2;
+ positions.forEach(p=>p.x+=offset);
+ return{positions,width,height:Math.max(560,depth(root)*158+100)};
+}
+function svg(tag,a={}){let e=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e}
+function render(){
+ const leaves=collectLeaves();$("count").textContent=leaves.reduce((s,l)=>s+l.keys.length,0);$("height").textContent=depth(root);$("leafCount").textContent=leaves.length;$("capacity").textContent=maxKeys();$("rules").textContent=`Ordem ${order}: máximo ${order} filhos e ${maxKeys()} chaves por nó. Folhas: mínimo ${minLeaf()} e máximo ${maxKeys()} registos.`;
+ let host=$("tree"),chain=$("chain");host.innerHTML="";
+ if(!root){host.innerHTML='<div class="empty"><b>Árvore vazia</b>Os nós aparecerão aqui após a primeira inserção.</div>';chain.hidden=true;return}
+ let {positions,width,height}=layoutTree(),s=svg("svg",{class:"tree-svg",width:"100%",height,viewBox:`0 0 ${width} ${height}`,preserveAspectRatio:"xMidYMid meet",role:"img","aria-label":"Árvore B+"});
+ function edges(n){if(n.leaf)return;let p=positions.get(n);n.children.forEach(c=>{let q=positions.get(c);s.appendChild(svg("line",{x1:p.x,y1:p.y+24,x2:q.x,y2:q.y-24,stroke:"#aab5c5","stroke-width":2}));edges(c)})}
+ function draw(n){
+   let p=positions.get(n),widths=cellWidths(n),w=nodeWidth(n),h=52,x=p.x-w/2,y=p.y-26,g=svg("g",{class:"node","data-keys":n.keys.join("|")});
+   g.appendChild(svg("rect",{x,y,width:w,height:h,rx:10,fill:n.leaf?"#eaf8f5":"#f2f4f7",stroke:n.leaf?"#0d9488":"#64748b","stroke-width":2}));
+   let cursor=x+8;n.keys.forEach((k,i)=>{let cw=widths[i];if(i)g.appendChild(svg("line",{x1:cursor,y1:y+6,x2:cursor,y2:y+h-6,stroke:"#cbd5e1"}));let t=svg("text",{x:cursor+cw/2,y:y+33,"text-anchor":"middle","font-size":String(k).length>12?12:15,"font-weight":750,fill:n.leaf?"#087f73":"#344054"});t.textContent=k;g.appendChild(t);cursor+=cw});
+   s.appendChild(g);if(!n.leaf)n.children.forEach(draw)
+ }
+ edges(root);draw(root);host.appendChild(s);chain.hidden=false;chain.innerHTML="";
+ leaves.forEach((l,i)=>{let c=document.createElement("span");c.className="leaf-chip";c.textContent=`[ ${l.keys.join(" | ")} ]`;chain.appendChild(c);if(i<leaves.length-1){let a=document.createElement("span");a.className="arrow";a.textContent="→";chain.appendChild(a)}})
+}
+function value(){let raw=$("value").value.trim();return raw===""?null:raw}
+function message(s,err=false){$("status").textContent=s;$("status").classList.toggle("error",err)}
+function animateLast(){let gs=$("tree").querySelectorAll(".node");if(gs.length){let g=gs[gs.length-1];g.classList.add("pulse");setTimeout(()=>g.classList.remove("pulse"),450)}}
+function doInsert(v){insert(v);let msg=`Inserido ${v}.`;save(msg);render();message(msg);animateLast()}
+function doRemove(v){let ok=remove(v);if(!ok){message(`${v} não existe na árvore.`,true);return}let msg=`Removida uma ocorrência de ${v}.`;save(msg);render();message(msg)}
+$("insert").onclick=()=>{let v=value();if(v===null){message("Introduz um número ou uma palavra.",true);return}doInsert(v);$("value").value=""};
+$("remove").onclick=()=>{let v=value();if(v===null){message("Introduz um número ou uma palavra.",true);return}doRemove(v);$("value").value=""};
+$("search").onclick=()=>{let v=value();if(v===null){message("Introduz um número ou uma palavra.",true);return}let exists=false;for(let l=leafHead;l;l=l.next)if(l.keys.some(k=>same(k,v))){exists=true;break}message(exists?`${v} encontrado nas folhas.`:`${v} não encontrado.`,!exists);let path=[],n=root;while(n){path.push(n);if(n.leaf)break;let i=0;while(i<n.keys.length&&compare(v,n.keys[i])>=0)i++;n=n.children[i]}let nodes=[...$("tree").querySelectorAll(".node")];nodes.forEach(g=>{if(path.some(p=>p.keys.join("|")===g.dataset.keys))g.classList.add(exists?"found":"visited")});setTimeout(()=>nodes.forEach(g=>g.classList.remove("found","visited")),1200)};
+$("back").onclick=()=>{if(cursor>0)restore(cursor-1)};$("forward").onclick=()=>{if(cursor<history.length-1)restore(cursor+1)};
+$("example").onclick=()=>{root=null;leafHead=null;[1,2,3,4,5,6,7,8,9,10].forEach(insert);history=[{data:JSON.stringify({root:null,order}),label:"Árvore vazia"},{data:state(),label:"Exemplo carregado: 1 a 10"}];cursor=1;logs=["Exemplo carregado: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10."];render();renderLog();updateHistory();message("Exemplo carregado: valores de 1 a 10.")};
+$("reset").onclick=()=>{root=null;leafHead=null;render();save("Árvore limpa.");message("Árvore limpa.")};
+$("order").onchange=e=>{let next=Number(e.target.value);if(next===order)return;order=next;let vals=[];for(let l=leafHead;l;l=l.next)vals.push(...l.keys);root=null;leafHead=null;vals.forEach(insert);render();save(`Ordem alterada para ${order}. Árvore reconstruída.`);message(`Ordem alterada para ${order}.`)};
+$("clearLog").onclick=()=>{logs=[];renderLog()};
+$("value").addEventListener("keydown",e=>{if(e.key==="Enter")$("insert").click()});
+history=[{data:state(),label:"Árvore vazia"}];render();updateHistory();
+})();
+</script>
+<footer class="site-footer" aria-label="Créditos">
+  <span>© 2026 · Direitos de criação reservados</span>
+  <strong>Criado por José Ferreira</strong>
+</footer>
+<style>
+.site-footer{max-width:1300px;margin:22px auto 0;padding:16px 22px;border-top:1px solid #e1e7ef;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#667085;font-size:.78rem}
+.site-footer strong{color:#344054;font-weight:750}
+@media(max-width:620px){.site-footer{padding:14px 12px}}
+</style>
+
+</body></html>
